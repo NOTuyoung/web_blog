@@ -66,7 +66,10 @@ docker compose up -d --build
 
 # === 6. Laravel настройка ===
 echo "⚙️ Настраиваем Laravel..."
+docker compose exec app composer install
+docker compose exec app cp .env.example .env || true
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
+
 
 echo "✅ Деплой завершён! Открой http://$(hostname -I | awk '{print $1}')"
