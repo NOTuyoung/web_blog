@@ -1,3 +1,5 @@
+version: "3.9"   # ← добавь эту строку
+
 services:
   app:
     build:
