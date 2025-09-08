@@ -14,10 +14,10 @@ then
     apt install -y docker.io
 fi
 
-if ! command -v docker compose &> /dev/null
+if ! docker compose version &> /dev/null
 then
-    echo "📦 Устанавливаем Docker Compose..."
-    apt install -y docker-compose
+    echo "📦 Устанавливаем Docker Compose (v2)..."
+    apt install -y docker-compose-plugin
 fi
 
 # === 3. Подготовка проекта ===
@@ -32,34 +32,7 @@ fi
 
 cd $APP_DIR
 
-# === 4. Генерация .env если его нет ===
-if [ ! -f ".env" ]; then
-    echo "⚙️ Создаём .env..."
-    cat > .env <<EOL
-APP_NAME=Laravel
-APP_ENV=production
-APP_KEY=
-APP_DEBUG=false
-APP_URL=http://localhost
-
-LOG_CHANNEL=stack
-
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=laravel
-DB_USERNAME=laravel
-DB_PASSWORD=secret
-
-BROADCAST_DRIVER=log
-CACHE_DRIVER=file
-QUEUE_CONNECTION=sync
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-EOL
-fi
-
-# === 5. Генерация Nginx-конфига ===
+# === 4. Генерация Nginx-конфига ===
 mkdir -p docker/nginx
 cat > docker/nginx/default.conf <<EOL
 server {
@@ -86,14 +59,14 @@ server {
 }
 EOL
 
-# === 6. Docker Build & Up ===
+# === 5. Docker Build & Up ===
 echo "🐳 Собираем контейнеры..."
 docker compose down || true
 docker compose up -d --build
 
-# === 7. Laravel настройка ===
+# === 6. Laravel настройка ===
 echo "⚙️ Настраиваем Laravel..."
-docker exec -it laravel-app bash -c "php artisan key:generate"
-docker exec -it laravel-app bash -c "php artisan migrate --seed"
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
 
 echo "✅ Деплой завершён! Открой http://$(hostname -I | awk '{print $1}')"
